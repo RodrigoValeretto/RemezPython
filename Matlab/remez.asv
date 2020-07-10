@@ -1,5 +1,5 @@
 function [h,delta] = remez(N,D,W)
-% h = fircheb(N,D,W)
+% h = remez(N,D,W)
 % Design de filtros tipo 1
 %
 % h : Resposta ao impulso de tamanho N
@@ -7,15 +7,6 @@ function [h,delta] = remez(N,D,W)
 % D : Resposta Ideal (grid uniforme)
 % W : Função de peso (grid uniforme)
 % O tamanho de N deve ser igual ao de D
-%
-% % Examplo
-% N = 31; Kp = 1; Ks = 4;
-% wp = 0.26*pi; ws = 0.34*pi; wo = 0.3*pi;
-% L = 1000;
-% w = [0:L]*pi/L;
-% W = Kp*(w<=wp) + Ks*(w>=ws);
-% D = (w<=wo);
-% h = fircheb(N,D,W);
 
 W = W(:);
 D = D(:);
@@ -25,7 +16,7 @@ M = (N-1)/2;
 R = M + 2; % R = Tamanho do conjunto de referencia
 
 % Inicializa conjunto de referência (Espaçado igualmente aproximadamente onde W>0)
-f = find(W>stop);
+f = find(W>stop);   
 k = f(round(linspace(1,length(f),R)));
 w = (0:L)'*pi/L;
 m = 0:M;
@@ -49,7 +40,7 @@ novok = novok(v);
 errok = errok(v);
 
 % Garante a propriedade de alternação
-v = etap(errok);
+v = gpalt(errok);
 novok = novok(v);
 errok = errok(v);
 

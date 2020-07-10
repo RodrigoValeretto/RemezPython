@@ -1,5 +1,5 @@
 function [h,delta] = remez(N,D,W)
-% h = fircheb(N,D,W)
+% h = remez(N,D,W)
 % Design de filtros tipo 1
 %
 % h : Resposta ao impulso de tamanho N
