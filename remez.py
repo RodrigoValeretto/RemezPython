@@ -28,9 +28,34 @@ def defineS(R):
         s.append(((-1)**i))
     return s
 
-def defineX(m, k, w, s, D):
-    print(np.asmatrix(m))
+def defineX(m, k, w, s, W, D):
+    # Transforma os vetores em matrizes
+    matrixm = m.reshape(1, len(m))
+    matrixw = w[k].reshape(len(k), 1)
+    # Multiplica as matrizes
+    matrixwm = matrixw*matrixm
+    # Calcula a matriz de cos
+    coswm = np.cos(matrixwm)
+    Wnp = np.array(W)
 
+    # Calcula matriz que deve ser concat
+    matrixsW = s/Wnp[k]
+
+    # Concatena matrizes
+    mF = np.zeros((coswm.shape[0], coswm.shape[1]+1))
+    mF[:,:-1] = coswm
+    mF[:,-1:] = matrixsW.reshape(coswm.shape[0], 1)
+
+    # Calcula solução linear para mF \ D[k]
+    matrixD = np.array(D)
+    x = np.linalg.solve(mF, matrixD[k])
+    return x
+
+def defineA(x, M):
+    a = []
+    for i in range(0, int(M)):
+        a.append(x[i])        
+    return a
 
 # Função que implementa o algoritmo de remez
 # para construção de filtros FIR
@@ -46,10 +71,15 @@ def remez(N, D, W):
     w = np.arange(0, L+1)*np.pi/L
     m = np.arange(0, M+1)
     s = defineS(R)
-    '''
+    
     while 1:
-        x = [cos(w(k)*m), s/W[k]] \ D[k]
-    '''
+        x = defineX(m, k, w, s, W, D)
+        a = defineA(x, M)
+        delta = x[int(M)+1]
+        print(delta)
+        # LINHA 29
+        break
+    
     return 0  # h, delta
 
 
