@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.fft import rfft
 
 
 def find(vet, comp, maior):
@@ -22,11 +23,13 @@ def defineK(R, f):
         aux.append(f[round(vet[i])])
     return aux
 
+
 def defineS(R):
     s = []
     for i in range(1, int(R+1)):
         s.append(((-1)**i))
     return s
+
 
 def defineX(m, k, w, s, W, D):
     # Transforma os vetores em matrizes
@@ -43,19 +46,21 @@ def defineX(m, k, w, s, W, D):
 
     # Concatena matrizes
     mF = np.zeros((coswm.shape[0], coswm.shape[1]+1))
-    mF[:,:-1] = coswm
-    mF[:,-1:] = matrixsW.reshape(coswm.shape[0], 1)
+    mF[:, :-1] = coswm
+    mF[:, -1:] = matrixsW.reshape(coswm.shape[0], 1)
 
     # Calcula solução linear para mF \ D[k]
     matrixD = np.array(D)
     x = np.linalg.solve(mF, matrixD[k])
     return x
 
+
 def defineA(x, M):
     a = []
     for i in range(0, int(M)+1):
-        a.append(x[i])        
+        a.append(x[i])
     return a
+
 
 def defineH(a, M):
     vet = []
@@ -67,31 +72,6 @@ def defineH(a, M):
     vet = np.array(vet)
     vet = vet/2
     return vet
-
-# Função que implementa o algoritmo de remez
-# para construção de filtros FIR
-def remez(N, D, W):
-    L = len(W) - 1
-    stop = 10**(-8)
-    M = (N-1)/2
-    R = M + 2
-
-    # Inicializando conjunto de referências
-    f = find(W, stop, True)
-    k = defineK(R, f)
-    w = np.arange(0, L+1)*np.pi/L
-    m = np.arange(0, M+1)
-    s = defineS(R)
-    
-    while 1:
-        x = defineX(m, k, w, s, W, D)
-        a = defineA(x, M)
-        delta = x[int(M)+1]  
-        h = defineH(a, M)
-        # LINHA 30
-        break
-    
-    return 0  # h, delta
 
 
 def defineW(w):
@@ -107,6 +87,49 @@ def defineD(w):
     for i in range(0, len(w)):
         vet.append(int((wp1 <= w[i]) and (w[i] <= wp2)))
     return vet
+
+
+def firamp(h, tipo, L):
+    N = len(h)
+    H = rfft(h, 2*L)
+    H = H[0:L+1]
+    w = np.arange(0, L+1)*np.pi/L
+    M = (N-1)/2
+
+    if tipo == 1 or tipo == 2:
+        H = np.exp(M*1j*w)*H
+    else:
+        H = -1j*exp(M*1j*w)*H
+    
+    A = H.real
+    # Completo porém fft duvidosa
+    return A
+
+
+# Função que implementa o algoritmo de remez
+# para construção de filtros FIR
+def remez(N, D, W):
+    L = len(W) - 1
+    stop = 10**(-8)
+    M = (N-1)/2
+    R = M + 2
+
+    # Inicializando conjunto de referências
+    f = find(W, stop, True)
+    k = defineK(R, f)
+    w = np.arange(0, L+1)*np.pi/L
+    m = np.arange(0, M+1)
+    s = defineS(R)
+
+    while 1:
+        x = defineX(m, k, w, s, W, D)
+        a = defineA(x, M)
+        delta = x[int(M)+1]
+        h = defineH(a, M)
+        A = firamp(h, 1, L)
+        break
+
+    return 0  # h, delta
 
 
 # Script de teste
