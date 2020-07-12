@@ -53,9 +53,20 @@ def defineX(m, k, w, s, W, D):
 
 def defineA(x, M):
     a = []
-    for i in range(0, int(M)):
+    for i in range(0, int(M)+1):
         a.append(x[i])        
     return a
+
+def defineH(a, M):
+    vet = []
+    for i in range(int(M), 0, -1):
+        vet.append(a[i])
+    vet.append(2*a[0])
+    for i in range(1, int(M)+1):
+        vet.append(a[i])
+    vet = np.array(vet)
+    vet = vet/2
+    return vet
 
 # Função que implementa o algoritmo de remez
 # para construção de filtros FIR
@@ -75,9 +86,9 @@ def remez(N, D, W):
     while 1:
         x = defineX(m, k, w, s, W, D)
         a = defineA(x, M)
-        delta = x[int(M)+1]
-        print(delta)
-        # LINHA 29
+        delta = x[int(M)+1]  
+        h = defineH(a, M)
+        # LINHA 30
         break
     
     return 0  # h, delta
