@@ -7,7 +7,7 @@ def defineK(R, f):
     vet = np.linspace(0, len(f)-1, int(R))
     aux = []
     for i in range(0, len(vet)):
-        aux.append(f[round(vet[i])])
+        aux.append(f[int(round(vet[i]))])
     return aux
 
 
