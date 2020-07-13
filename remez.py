@@ -189,7 +189,7 @@ def remez(N, D, W, itmax):
     # para construção de filtros FIR
     L = len(W) - 1
     stop = 10**(-8)
-    M = (N-1)/2
+    M = int((N-1)/2)
     R = M + 2
 
     # Inicializando conjunto de referências
@@ -244,8 +244,8 @@ def remez(N, D, W, itmax):
     return h, A, delta
 
 
-'''
-# Script de teste1
+
+'''# Script de teste1
 def defineW(w):
     vet = []
     for i in range(0, len(w)):
@@ -278,8 +278,8 @@ W = defineW(w)
 D = defineD(w)
 h, A, delta = remez(N, D, W, itmax)
 '''
-'''
-# Script de teste2
+
+'''# Script de teste2
 itmax = 1000  # numero máximo de iterações
 N = 31
 Kp = 1
