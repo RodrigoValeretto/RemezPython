@@ -1,5 +1,6 @@
 import numpy as np
-from numpy.fft import rfft
+from numpy.fft import fft
+import matplotlib.pyplot as plt
 
 
 def find(vet, comp, maior):
@@ -89,9 +90,35 @@ def defineD(w):
     return vet
 
 
+def defineNovoK(vet1, vet2):
+    res = []
+    for i in range(len(vet1)):
+        res.append(vet1[i])
+    for i in range(len(vet2)):
+        res.append(vet2[i])
+    res = sorted(res)
+
+    return res
+
+
+def defineErroK(A, D, W, novok):
+    errok = []
+    for i in range(len(novok)):
+        errok.append((A[novok[i]] - D[novok[i]])*W[novok[i]])
+    
+    return errok
+
+
+def defineV(errok, delta, stop):
+    res = []
+    for i in range(0, len(errok)):
+        if abs(errok[i]) >= abs(delta-stop):
+            res.append(True)
+    return res
+
 def firamp(h, tipo, L):
     N = len(h)
-    H = rfft(h, 2*L)
+    H = fft(h, 2*L)
     H = H[0:L+1]
     w = np.arange(0, L+1)*np.pi/L
     M = (N-1)/2
@@ -99,11 +126,31 @@ def firamp(h, tipo, L):
     if tipo == 1 or tipo == 2:
         H = np.exp(M*1j*w)*H
     else:
-        H = -1j*exp(M*1j*w)*H
-    
+        H = -1j*np.exp(M*1j*w)*H
+
     A = H.real
-    # Completo porém fft duvidosa
     return A
+
+
+def localMax(vet):
+    n = len(vet)
+    vcomp1 = []
+    vcomp2 = []
+    res = []
+
+    vcomp1.append(vet[0]-1)
+    for i in range(0, n-1):
+        vcomp1.append(vet[i])
+
+    for i in range(1, n):
+        vcomp2.append(vet[i])
+    vcomp2.append(vet[n-1]-1)
+
+    for i in range(0, n):
+        if vet[i] > vcomp1[i] and vet[i] > vcomp2[i]:
+            res.append(i)
+
+    return res
 
 
 # Função que implementa o algoritmo de remez
@@ -122,11 +169,22 @@ def remez(N, D, W):
     s = defineS(R)
 
     while 1:
+        # Resolvendo problema de interpolação
         x = defineX(m, k, w, s, W, D)
         a = defineA(x, M)
         delta = x[int(M)+1]
         h = defineH(a, M)
         A = firamp(h, 1, L)
+        erro = (A - D)*W  # Erro do peso
+
+        # Atualizando conjunto de referências
+        novok = defineNovoK(localMax(erro), localMax(-erro))
+        errok = defineErroK(A, D, W, novok)
+
+        # Remove frequencias em que o erro do peso é menor que delta
+        v = defineV(errok, delta, stop)
+        print(v)
+        
         break
 
     return 0  # h, delta
