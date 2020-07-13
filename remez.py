@@ -3,20 +3,6 @@ from numpy.fft import fft
 import matplotlib.pyplot as plt
 
 
-def find(vet, comp, maior):
-    res = []
-    if maior:
-        for i in range(0, len(vet)):
-            if vet[i] >= comp:
-                res.append(i)
-    else:
-        for i in range(0, len(vet)):
-            if vet[i] <= comp:
-                res.append(i)
-
-    return res
-
-
 def defineK(R, f):
     vet = np.linspace(0, len(f)-1, int(R))
     aux = []
@@ -42,6 +28,9 @@ def defineX(m, k, w, s, W, D):
     coswm = np.cos(matrixwm)
     Wnp = np.array(W)
 
+    len(s)
+    len(Wnp)
+    len(Wnp[k])
     # Calcula matriz que deve ser concat
     matrixsW = s/Wnp[k]
 
@@ -75,19 +64,28 @@ def defineH(a, M):
     return vet
 
 
-def defineW(w):
-    vet = []
-    for i in range(0, len(w)):
-        vet.append(Ks1*(w[i] <= ws1) + Kp*((w[i] >= wp1)
-                                           and (w[i] <= wp2)) + Ks2*(w[i] >= ws2))
-    return vet
+def defineV(errok, delta, stop):
+    res = []
+    for i in range(0, len(errok)):
+        if abs(errok[i]) >= (abs(delta)-stop):
+            res.append(True)
+        else:
+            res.append(False)
+    return res
 
 
-def defineD(w):
-    vet = []
-    for i in range(0, len(w)):
-        vet.append(int((wp1 <= w[i]) and (w[i] <= wp2)))
-    return vet
+def find(vet, comp, maior):
+    res = []
+    if maior:
+        for i in range(0, len(vet)):
+            if vet[i] >= comp:
+                res.append(i)
+    else:
+        for i in range(0, len(vet)):
+            if vet[i] <= comp:
+                res.append(i)
+
+    return res
 
 
 def defineNovoK(vet1, vet2):
@@ -105,18 +103,9 @@ def defineErroK(A, D, W, novok):
     errok = []
     for i in range(len(novok)):
         errok.append((A[novok[i]] - D[novok[i]])*W[novok[i]])
-    
+
     return errok
 
-
-def defineV(errok, delta, stop):
-    res = []
-    for i in range(0, len(errok)):
-        if abs(errok[i]) >= abs(delta-stop):
-            res.append(True)
-        else:
-            res.append(False)
-    return res
 
 def atualizaNEK(nek, v, inteiro):
     res = []
@@ -130,11 +119,14 @@ def atualizaNEK(nek, v, inteiro):
 
     return res
 
+
 def ajustaTamConj(novok, errok, R):
     while len(novok) > R:
         if abs(errok[0]) < abs(errok[len(novok)-1]):
             novok.remove(novok[0])
-    return 0
+        else:
+            novok.remove(novok[len(novok)-1])
+    return novok
 
 
 def firamp(h, tipo, L):
@@ -187,13 +179,14 @@ def gpalt(vet):
             res.append(xv)
             xe = vet[i]
             xv = i
-    
+
     res.append(xv)
     return res
 
-# Função que implementa o algoritmo de remez
-# para construção de filtros FIR
-def remez(N, D, W):
+
+def remez(N, D, W, itmax):
+    # Função que implementa o algoritmo de remez
+    # para construção de filtros FIR
     L = len(W) - 1
     stop = 10**(-8)
     M = (N-1)/2
@@ -206,7 +199,8 @@ def remez(N, D, W):
     m = np.arange(0, M+1)
     s = defineS(R)
 
-    while 1:
+    it = 1
+    while it <= itmax:
         # Resolvendo problema de interpolação
         x = defineX(m, k, w, s, W, D)
         a = defineA(x, M)
@@ -231,13 +225,43 @@ def remez(N, D, W):
 
         # Se o novo conjunto for muito grande, remove pontos até atingir tamanho
         # adequado
-        # novok = ajustaTamConj(novok, errok, R)
-        break
+        novok = ajustaTamConj(novok, errok, R)
 
-    return 0  # h, delta
+        # Confere se o algoritmo convergiu
+        if (max(errok)-abs(delta))/abs(delta) < stop:
+            print("Convergiu com " + str(it) + " iterações.")
+            break
+
+        if it == itmax:
+            print("Algoritmo não convergiu")
+
+        k = novok
+        it += 1
+
+    delta = abs(delta)
+    h = defineH(a, M)
+
+    return h, A, delta
 
 
-# Script de teste
+'''
+# Script de teste1
+def defineW(w):
+    vet = []
+    for i in range(0, len(w)):
+        vet.append(Ks1*(w[i] <= ws1) + Kp*((w[i] >= wp1)
+                                           and (w[i] <= wp2)) + Ks2*(w[i] >= ws2))
+    return vet
+
+
+def defineD(w):
+    vet = []
+    for i in range(0, len(w)):
+        vet.append(int((wp1 <= w[i]) and (w[i] <= wp2)))
+    return vet
+
+itmax = 1000  # numero máximo de iterações
+
 N = 103
 ws1 = 0.20*np.pi
 wp1 = 0.25*np.pi
@@ -252,4 +276,66 @@ L = 4000
 w = np.arange(0, L+1)*np.pi/L
 W = defineW(w)
 D = defineD(w)
-h = remez(N, D, W)
+h, A, delta = remez(N, D, W, itmax)
+'''
+'''
+# Script de teste2
+itmax = 1000  # numero máximo de iterações
+N = 31
+Kp = 1
+Ks = 4
+wp = np.dot(0.26, np.pi)
+ws = np.dot(0.34, np.pi)
+wo = np.dot(0.3, np.pi)
+L = 1000
+w = np.dot(np.concatenate([np.arange(0, L+1)]), np.pi) / L
+W = np.dot(Kp, (w <= wp)) + np.dot(Ks, (w >= ws))
+D = 1*(w <= wo)
+h, A, delta = remez(N, D, W, itmax)
+'''
+
+# Script de teste3
+def defineW(w):
+    vet = []
+    for i in range(0, len(w)):
+        vet.append(Ks1*(w[i] <= ws1) + Kp*((w[i] >= wp1)
+                                           and (w[i] <= wp2)) + Ks2*(w[i] >= ws2))
+    return vet
+
+
+def defineD(w):
+    vet = []
+    for i in range(0, len(w)):
+        vet.append(int((wp1 <= w[i]) and (w[i] <= wp2)))
+    return vet
+
+
+itmax = 1000  # numero máximo de iterações
+
+N = 105
+ws1 = 0.20*np.pi
+wp1 = 0.25*np.pi
+wp2 = 0.63*np.pi
+ws2 = 0.68*np.pi
+Ks1 = 10
+Kp = 1
+Ks2 = 1
+
+wo = (ws1+wp1)/2
+w1 = (wp1+ws2)/2
+
+L = 4000
+w = np.arange(0, L+1)*np.pi/L
+W = defineW(w)
+D = defineD(w)
+h, A, delta = remez(N, D, W, itmax)
+
+
+# Plot
+n = np.arange(0, N)
+fig, ax = plt.subplots(2)
+ax[0].stem(h, use_line_collection=True)
+ax[0].set_title("h[n] do Filtro")
+ax[1].plot(A)
+ax[1].set_title("Resposta em frequencia")
+plt.show()

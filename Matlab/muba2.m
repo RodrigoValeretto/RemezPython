@@ -15,4 +15,6 @@
 
    W = Ks1*(w<=ws1) + Kp*((w>=wp1)&(w<=wp2)) + Ks2*(w>=ws2);
    D = (wp1<=w)&(w<=wp2);
-   h = fircheb(N,D,W);
+   h = remez(N,D,W);
+   n = [1:N];
+   stem(n,h)
