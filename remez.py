@@ -114,7 +114,28 @@ def defineV(errok, delta, stop):
     for i in range(0, len(errok)):
         if abs(errok[i]) >= abs(delta-stop):
             res.append(True)
+        else:
+            res.append(False)
     return res
+
+def atualizaNEK(nek, v, inteiro):
+    res = []
+    if not inteiro:
+        for i in range(len(v)):
+            if v[i]:
+                res.append(nek[i])
+    else:
+        for i in range(len(v)):
+            res.append(nek[v[i]])
+
+    return res
+
+def ajustaTamConj(novok, errok, R):
+    while len(novok) > R:
+        if abs(errok[0]) < abs(errok[len(novok)-1]):
+            novok.remove(novok[0])
+    return 0
+
 
 def firamp(h, tipo, L):
     N = len(h)
@@ -153,6 +174,23 @@ def localMax(vet):
     return res
 
 
+def gpalt(vet):
+    res = []
+    xe = vet[0]
+    xv = 0
+    for i in range(1, len(vet)):
+        if np.sign(vet[i]) == np.sign(xe):
+            if abs(vet[i]) > abs(xe):
+                xe = vet[i]
+                xv = i
+        else:
+            res.append(xv)
+            xe = vet[i]
+            xv = i
+    
+    res.append(xv)
+    return res
+
 # Função que implementa o algoritmo de remez
 # para construção de filtros FIR
 def remez(N, D, W):
@@ -183,8 +221,17 @@ def remez(N, D, W):
 
         # Remove frequencias em que o erro do peso é menor que delta
         v = defineV(errok, delta, stop)
-        print(v)
-        
+        novok = atualizaNEK(novok, v, False)
+        errok = atualizaNEK(errok, v, False)
+
+        # Garante propriedade de alternação
+        v = gpalt(errok)
+        novok = atualizaNEK(novok, v, True)
+        errok = atualizaNEK(errok, v, True)
+
+        # Se o novo conjunto for muito grande, remove pontos até atingir tamanho
+        # adequado
+        # novok = ajustaTamConj(novok, errok, R)
         break
 
     return 0  # h, delta
